@@ -67,7 +67,7 @@ jobs:
     needs: literate
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
-    container: ghcr.io/sosiristseng/docker-jupyterbook:0.15.1.1
+    container: ghcr.io/sosiristseng/docker-jupyterbook:0.15.1.2
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
