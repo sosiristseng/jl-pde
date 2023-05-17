@@ -1,4 +1,4 @@
-name: Build notebooks and publish
+name: CI with dynamic parallel matrix
 
 on:
   workflow_dispatch:
@@ -12,27 +12,24 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  JULIA_CACHE: '1'
+  TIMEOUT: '-1'
+  EXTRA_ARGS: ''
   PYTHON_VER: '3.11'
 
 jobs:
-  execute:
-    name: Execute notebooks
+  setup:
     runs-on: ubuntu-latest
-    env:
-      NPROC: '2'       # Number of Julia processes to run the notebooks
-      JULIA_CACHE: '1' # Set this env var zero to disable caching
-      GKSwstype: 100
-      JULIA_NUM_THREADS: 'auto'
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Python ${{ env.PYTHON_VER }}
         uses: actions/setup-python@v4
         id: python
         with:
           python-version: ${{ env.PYTHON_VER }}
-      - name: Install Python dep
-        run: pip install -r requirements.txt
       - name: Read Julia version
         id: read_toml
         run: |
@@ -48,45 +45,97 @@ jobs:
         with:
           path: |
             ~/.julia
+            ~/.local/share/jupyter
           key: ${{ runner.os }}-julia-${{ env.JULIA_CACHE }}-${{ hashFiles('Manifest.toml') }}
           restore-keys: |
             ${{ runner.os }}-julia-${{ env.JULIA_CACHE }}-
       - name: Install Julia dependencies
         run: |
-          julia --color=yes --project="" -e 'import Pkg; Pkg.Registry.update(); Pkg.add(["Literate", "PrettyTables"])'
-          julia --color=yes --project=@. -e 'import Pkg; Pkg.instantiate(); Pkg.resolve(); Pkg.precompile(); Pkg.gc()'
+          julia --color=yes --project=@. -e 'import Pkg; Pkg.Registry.update(); Pkg.instantiate(); Pkg.resolve(); Pkg.precompile(); Pkg.gc()'
+          julia --color=yes --project="" -e 'import Pkg; Pkg.add("IJulia"); using IJulia; installkernel("Julia", "--project=@.", env=Dict("JULIA_NUM_THREADS"=>"auto"))'
       - name: Save Julia dependencies
         uses: actions/cache/save@v3
         if: ${{ steps.restore-cache.outputs.cache-hit != 'true' && env.JULIA_CACHE != '0' }}
         with:
           path: |
             ~/.julia
+            ~/.local/share/jupyter
           key: ${{ steps.restore-cache.outputs.cache-primary-key }}
-      - name: Build notebooks with ${{ env.NPROC }} processes
-        run: JULIA_PROJECT=@. julia --color=yes -p ${{ env.NPROC }} literate.jl
-      - name: Upload build artifact
+      - name: List notebooks as a JSON array
+        id: set-matrix
+        working-directory: docs
+        run: echo "matrix=$(python -c 'import glob, json; print(json.dumps(glob.glob("**/*.ipynb", recursive=True)))')" >> "$GITHUB_OUTPUT"
+
+  execute:
+    needs: setup
+    strategy:
+      max-parallel: 20
+      fail-fast: false
+      matrix:
+        # Notebooks need to be executed
+        notebook: ${{ fromJSON(needs.setup.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup Python ${{ env.PYTHON_VER }}
+        uses: actions/setup-python@v4
+        id: python
+        with:
+          python-version: ${{ env.PYTHON_VER }}
+      - name: Install Python dependencies
+        run: pip install nbconvert -r requirements.txt
+      - name: Read Julia version
+        id: read_toml
+        run: |
+          echo "JULIA_VER=$(python read_toml.py)" | tee -a "$GITHUB_ENV"
+      - name: Setup Julia ${{ env.JULIA_VER }}
+        uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ env.JULIA_VER }}
+      - name: Restore Julia dependencies
+        id: restore-cache
+        uses: actions/cache/restore@v3
+        if: ${{ env.JULIA_CACHE != '0'}}
+        with:
+          path: |
+            ~/.julia
+            ~/.local/share/jupyter
+          key: ${{ runner.os }}-julia-${{ env.JULIA_CACHE }}-${{ hashFiles('Manifest.toml') }}
+      - name: Install Julia kernel
+        if: ${{ steps.restore-cache.outputs.cache-hit != 'true' && env.JULIA_CACHE != '0' }}
+        run: |
+          julia --color=yes --project=@. -e 'import Pkg; Pkg.Registry.update(); Pkg.instantiate(); Pkg.resolve(); Pkg.precompile()'
+          julia --color=yes --project="" -e 'import Pkg; Pkg.add("IJulia"); Pkg.build("IJulia")'
+      - name: Execute Notebook
+        run: >
+          jupyter nbconvert --to notebook --execute --inplace ${{ env.EXTRA_ARGS }}
+          --ExecutePreprocessor.timeout=${{ env.TIMEOUT }}
+          --ExecutePreprocessor.kernel_name="julia-$(julia -e 'print(VERSION.major, ".", VERSION.minor)')"
+          docs/${{ matrix.notebook }}
+      - name: Upload Notebook
         uses: actions/upload-artifact@v3
         with:
           name: notebooks
-          path: docs
+          path: docs*/${{ matrix.notebook }}  # keep folder structure
+          retention-days: 1
 
   jupyter-book:
-    name: Jupyter Book
-    runs-on: ubuntu-latest
     needs: execute
+    runs-on: ubuntu-latest
+    # output success flag for CI
+    outputs:
+      success: ${{ steps.setoutput.outputs.success }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Remove existing docs folder
-        run: rm -rf docs || true
-      - name: Download built notebooks to replace the original
+      - name: Download built notebooks
         uses: actions/download-artifact@v3
         with:
           name: notebooks
-          path: docs/
-      - name: Display structure of downloaded files
-        run: ls -R
-        working-directory: docs/
+          path: out/
+      - name: Copy back built notebooks
+        run: cp --verbose -rf out/docs/* docs/
       - name: Setup Python ${{ env.PYTHON_VER }}
         uses: actions/setup-python@v4
         id: python
@@ -101,18 +150,37 @@ jobs:
         # the package installation will only be executed when the
         # requirements-files have changed.
       - name: Install Python dependencies
-        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
         run: pip install -r .github/requirements.txt
-      - name: Setup Pages
-        id: pages
-        uses: actions/configure-pages@v3
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
       - name: Build website
-        run: jupyter-book build docs
+        run: jupyter-book build docs/
       - name: Upload artifact for GH pages
         uses: actions/upload-pages-artifact@v1
-        if: ${{ github.ref == 'refs/heads/main' }}
         with:
-          path: docs/_build/html
+          path: docs/_build/html/
+      - name: Set output flag
+        id: setoutput
+        run: echo "success=true" >> $GITHUB_OUTPUT
+
+  # CI conclusion for GitHub status check
+  # https://brunoscheufler.com/blog/2022-04-09-the-required-github-status-check-that-wasnt
+  CI:
+    needs: jupyter-book
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      # pass step only when output of previous jupyter-book job is set
+      # in case at least one of the execution fails, jupyter-book is skipped
+      # and the output will not be set, which will then cause the ci job to fail
+      - run: |
+          passed="${{ needs.jupyter-book.outputs.success }}"
+          if [[ $passed == "true" ]]; then
+            echo "Tests passed"
+            exit 0
+          else
+            echo "Tests failed"
+            exit 1
+          fi
 
   deploy:
     name: Deploy to GitHub pages
