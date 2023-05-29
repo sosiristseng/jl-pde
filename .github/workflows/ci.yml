@@ -1,0 +1,201 @@
+name: CI with dynamic parallel matrix
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TIMEOUT: '-1'
+  EXTRA_ARGS: ''
+  JULIA_CACHE: '1' # Set this env var zero to disable caching
+  JULIA_CONDAPKG_BACKEND: 'Null'  # Use system python for PythonCall.jl
+  PY_VER: '3.11'
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup Python ${{ env.PY_VER }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PY_VER }}
+      - name: Read Julia version
+        id: read_toml
+        uses: SebRollen/toml-action@v1.0.2
+        with:
+          file: 'Manifest.toml'
+          field: 'julia_version'
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ steps.read_toml.outputs.value }}
+      - name: Cache Julia dependencies
+        id: cache-julia
+        uses: actions/cache@v3
+        if: ${{ env.JULIA_CACHE != '0'}}
+        with:
+          path: |
+            ~/.julia
+            ~/.local/share/jupyter
+          key: ${{ runner.os }}-julia-${{ env.JULIA_CACHE }}-${{ hashFiles('**/Manifest.toml') }}
+          # restore-keys: |
+          #   ${{ runner.os }}-julia-${{ env.JULIA_CACHE }}-
+      - name: Install Julia dependencies
+        shell: julia --project=@. --color=yes {0}
+        run: |
+          import Pkg
+          Pkg.instantiate()
+          Pkg.resolve()
+          Pkg.precompile()
+          Pkg.gc()
+          using IJulia
+          installkernel("Julia", "--project=@.", env=Dict("JULIA_NUM_THREADS"=>"auto"))
+      - name: List notebooks as a JSON array
+        id: set-matrix
+        working-directory: docs
+        run: echo "matrix=$(python -c 'import glob, json; print(json.dumps(glob.glob("**/*.ipynb", recursive=True)))')" >> "$GITHUB_OUTPUT"
+
+  execute:
+    needs: setup
+    strategy:
+      max-parallel: 20
+      fail-fast: false
+      matrix:
+        # Notebooks need to be executed
+        notebook: ${{ fromJSON(needs.setup.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Read Julia version
+        id: read_toml
+        uses: SebRollen/toml-action@v1.0.2
+        with:
+          file: 'Manifest.toml'
+          field: 'julia_version'
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ steps.read_toml.outputs.value }}
+      - name: Cache Julia dependencies
+        id: cache-julia
+        uses: actions/cache@v3
+        if: ${{ env.JULIA_CACHE != '0'}}
+        with:
+          path: |
+            ~/.julia
+            ~/.local/share/jupyter
+          key: ${{ runner.os }}-julia-${{ env.JULIA_CACHE }}-${{ hashFiles('**/Manifest.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-julia-${{ env.JULIA_CACHE }}-
+      - name: Setup Python ${{ env.PY_VER }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PY_VER }}
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+      - name: Install Python dependencies
+        run: pip install nbconvert -r requirements.txt
+      - name: Execute Notebook
+        env:
+          JULIA_PROJECT: "@."
+        run: >
+          jupyter nbconvert --to notebook --execute --inplace ${{ env.EXTRA_ARGS }}
+          --ExecutePreprocessor.timeout=${{ env.TIMEOUT }}
+          --ExecutePreprocessor.kernel_name=$(julia -e 'print("julia-1.", VERSION.minor)')
+          docs/${{ matrix.notebook }}
+      - name: Upload Notebook
+        uses: actions/upload-artifact@v3
+        with:
+          name: notebooks
+          path: docs*/${{ matrix.notebook }}  # keep folder structure
+          retention-days: 1
+
+  jupyter-book:
+    needs: execute
+    runs-on: ubuntu-latest
+    # store success output flag for the ci job
+    outputs:
+      success: ${{ steps.setoutput.outputs.success }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Download notebooks
+        uses: actions/download-artifact@v3
+        with:
+          name: notebooks
+          path: out/
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: out
+      - name: Copy back built notebooks
+        run: cp --verbose -rf out/docs/* docs/
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PY_VER }}
+          cache: 'pip'
+          cache-dependency-path: |
+            .github/requirements.txt
+      - name: Install Python dependencies
+        run: pip install -r .github/requirements.txt
+      - name: Build website
+        run: jupyter-book build docs/
+      - name: Upload pages artifact
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: docs/_build/html
+      - name: Set output flag
+        id: setoutput
+        run: echo "success=true" >> $GITHUB_OUTPUT
+
+  # CI conclusion for GitHub status check
+  # https://brunoscheufler.com/blog/2022-04-09-the-required-github-status-check-that-wasnt
+  CI:
+    needs: jupyter-book
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      # pass step only when output of previous jupyter-book job is set
+      # in case at least one of the execution fails, jupyter-book is skipped
+      # and the output will not be set, which will then cause the ci job to fail
+      - run: |
+          passed="${{ needs.jupyter-book.outputs.success }}"
+          if [[ $passed == "true" ]]; then
+            echo "Tests passed"
+            exit 0
+          else
+            echo "Tests failed"
+            exit 1
+          fi
+
+  # Deployment job
+  deploy:
+    name: Deploy to GitHub pages
+    needs: jupyter-book
+    if: ${{ github.ref == 'refs/heads/main' }}
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write # to deploy to Pages
+      id-token: write # to verify the deployment originates from an appropriate source
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
