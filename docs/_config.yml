@@ -1,7 +1,7 @@
 # Book settings
 # Learn more at https://jupyterbook.org/customize/config.html
 
-title: My sample book
+title: Partial DE
 author: Wen-Wei Tseng
 copyright: "2023" # Copyright year to be placed in the footer
 logo: ""  # A path to the book logo
@@ -62,7 +62,7 @@ launch_buttons:
 
 # Information about where the book exists on the web
 repository:
-  url: https://github.com/ww-jl/template-juliabook-matrix # Online location of your book (GitHub is recommended)
+  url: https://github.com/sosiristseng/jl-pde # Online location of your book (GitHub is recommended)
   path_to_book: docs # Optional path to your book, relative to the repository root
   branch: main # Which branch of the repository should be used when creating links (optional)
 

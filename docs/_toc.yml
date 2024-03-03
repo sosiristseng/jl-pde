@@ -4,5 +4,6 @@
 format: jb-book
 root: index
 chapters:
-  - file: plots
-  - file: sub/plots
+  - file: 01-sis
+  - file: 02-heat
+  - file: 03-brusselator
