@@ -48,8 +48,8 @@ latex:
   use_jupyterbook_latex: true # use sphinx-jupyterbook-latex for pdf builds as default
 
 # Add a bibtex file so that we can create citations
-bibtex_bibfiles:
-  - references.bib
+# bibtex_bibfiles:
+#   - references.bib
 
 #######################################################################################
 # Launch button settings
