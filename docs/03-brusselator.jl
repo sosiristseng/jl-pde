@@ -126,8 +126,8 @@ umax = maximum(maximum, solu)
 vmax = maximum(maximum, solu)
 
 # Visualization
+# Take `2:end` since in periodic condition, end == 1
 anim = @animate for k in eachindex(discrete_t)
-    # Take2:end since in periodic condition, end === 1
     heatmap(solu[2:end, 2:end, k], title="u @ t=$(discrete_t[k])", clims = (0.0, 4.2))
 end
 
