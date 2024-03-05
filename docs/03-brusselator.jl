@@ -98,7 +98,7 @@ bcs = [
 ]
 
 # PDE system
-@named pdesys = PDESystem(eq, bcs, domains, [x, y, t], [u(x,y,t), v(x,y,t)])
+@named pdesys = PDESystem(eqs, bcs, domains, [x, y, t], [u(x,y,t), v(x,y,t)])
 
 # Discretization
 discretization = let N = 16
