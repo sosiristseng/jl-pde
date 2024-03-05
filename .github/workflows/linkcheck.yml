@@ -12,29 +12,41 @@ on:
       - '.lycheeignore'
       - '.github/workflows/linkcheck.yml'
 
-env:
-  DIR: 'docs'
-
 jobs:
   linkcheck:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        id: cp
-        with:
-          python-version: '3.x'
-      - name: Cache pip dependencies
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v1
+      - name: Convert literate notebooks to markdown files
+        shell: julia --color=yes {0}
+        working-directory: docs
+        run: |
+          import Pkg
+          Pkg.add("Literate")
+          using Literate
+          for (root, dirs, files) in walkdir(pwd())
+            for file in files
+              if endswith(file, ".jl")
+                nb = joinpath(root, file)
+                Literate.markdown(nb, dirname(nb); mdstrings=true, flavor=Literate.CommonMarkFlavor())
+              end
+            end
+          end
+      - name: Restore lychee cache
         uses: actions/cache@v4
-        id: cache-py
         with:
           save-always: 'true'
-          path: ${{ env.pythonLocation }}
-          key:  ${{ runner.os }}-pip-${{ steps.cp.outputs.python-version }}-${{ hashFiles('requirements.txt') }}
-      - name: Install pip dependencies if cache miss
-        if: steps.cache-py.outputs.cache-hit != 'true'
-        run: pip install -r requirements.txt
-      - name: Check links
-        run: jupyter-book build ${DIR} --builder linkcheck
+          path: .lycheecache
+          key: cache-lychee-${{ github.sha }}
+          restore-keys: cache-lychee-
+      - name: Lychee Checker
+        uses: lycheeverse/lychee-action@v1.9.3
+        id: lychee
+        with:
+          fail: true
+          args: '--accept 200,204,429 --verbose --no-progress --cache --max-cache-age 1d docs/'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
