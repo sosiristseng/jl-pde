@@ -1,5 +1,6 @@
 [deps]
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+DisplayAs = "0b91fe84-8a4c-11e9-3e1d-67c38462b6d6"
 DomainSets = "5b8099bc-c8ec-5219-889f-1d9e522a28bf"
 MethodOfLines = "94925ecb-adb7-4558-8ed8-f975c56a0bf4"
 ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
