@@ -64,7 +64,11 @@ ts = pmap(litnbs; on_error=ex->NaN) do nb
     @elapsed Literate.notebook(nb, outdir; mdstrings=true)
 end
 
+# Show literate notebook execution results
 pretty_table([litnbs ts], header=["Notebook", "Elapsed (s)"])
+
+# Remove worker processes in Distributed.jl
+rmprocs(workers())
 
 # Debug notebooks one by one if there are errors
 for (nb, t) in zip(litnbs, ts)
@@ -85,9 +89,17 @@ any(isnan, ts) && error("Please check literate notebook error(s).")
 # Install IJulia kernel
 IJulia.installkernel("Julia", "--project=@.", "--heap-size-hint=3G")
 
-# Write the list of jupyter notebooks to be executed
-open(outfile, "w") do f
-    for i in ipynbs
-        println(f, i)
-    end
+# nbconvert command array
+ntasks = parse(Int, get(ENV, "NBCONVERT_JOBS", "1"))
+kernelname = "--ExecutePreprocessor.kernel_name=julia-1.$(VERSION.minor)"
+execute = ifelse(get(ENV, "ALLOWERRORS", " ") == "true", "--execute --allow-errors", "--execute")
+timeout = "--ExecutePreprocessor.timeout=" * get(ENV, "TIMEOUT", "-1")
+cmds = [`jupyter nbconvert --to notebook $(execute) $(timeout) $(kernelname) --output $(joinpath(abspath(pwd()), cachedir, nb)) $(nb)` for nb in ipynbs]
+
+# Run the nbconvert commands in parallel
+ts = asyncmap(cmds; ntasks) do cmd
+    @elapsed run(cmd)
 end
+
+# Print execution result
+pretty_table([ipynbs ts], header=["Notebook", "Elapsed (s)"])

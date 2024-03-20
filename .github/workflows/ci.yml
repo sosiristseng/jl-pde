@@ -1,4 +1,4 @@
-name: CI with GNU parallel
+name: CI
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ concurrency:
 env:
   NBCONVERT_JOBS: '4'
   LITERATE_PROC: '2'
-  EXTRA_ARGS: ''   # Extra arguments for nbconvert
+  ALLOWERRORS: 'false'
   CACHE_NUM: '1'
   JULIA_CONDAPKG_BACKEND: 'Null'
   JULIA_CI: 'true'
@@ -34,6 +34,7 @@ jobs:
     - name: Cache pip dependencies
       uses: actions/cache@v4
       id: cache-py
+      if: ${{ contains(runner.name, 'GitHub Actions') }}
       with:
         path: ${{ env.pythonLocation }}
         key:  ${{ runner.os }}-pip-${{ steps.cp.outputs.python-version }}-${{ hashFiles('requirements.txt') }}
@@ -58,9 +59,9 @@ jobs:
       uses: julia-actions/setup-julia@v1
       with:
         version: ${{ steps.read_toml.outputs.value }}
-        show-versioninfo: 'true'
     - name: Restore Julia packages
       uses: actions/cache/restore@v4
+      if: ${{ contains(runner.name, 'GitHub Actions') }}
       id: cache-julia
       with:
         path: |
@@ -70,30 +71,20 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-julia-${{ env.CACHE_NUM }}-
     - name: Install Julia packages
-      if: ${{ steps.cache-julia.outputs.cache-hit != 'true' }}
+      if: ${{ contains(runner.name, 'GitHub Actions') && steps.cache-julia.outputs.cache-hit != 'true' }}
       env:
         PYTHON: ${{ env.pythonLocation }}/python
       run: julia --color=yes instantiate.jl
     - name: Save Julia packages
       uses: actions/cache/save@v4
-      if: ${{ steps.cache-julia.outputs.cache-hit != 'true' }}
+      if: ${{ contains(runner.name, 'GitHub Actions') && steps.cache-julia.outputs.cache-hit != 'true' }}
       with:
         path: |
           ~/.julia
           !~/.julia/registries
         key: ${{ steps.cache-julia.outputs.cache-primary-key }}
-    - name: Install IJulia kernel and run literate notebooks
-      run: julia --color=yes -p ${{ env.LITERATE_PROC }} --heap-size-hint=4G literate.jl
-    - name: Execute Jupyter notebooks
-      run: >
-        parallel -a ipynbs.txt --joblog job.log -j ${{ env.NBCONVERT_JOBS }} jupyter nbconvert --to notebook
-        --execute ${{ env.EXTRA_ARGS }}
-        --ExecutePreprocessor.timeout=-1
-        --ExecutePreprocessor.kernel_name=julia-1.$(julia -e 'print(VERSION.minor)')
-        --output ${{ github.workspace }}/${{ env.NBCACHE }}/{}
-        {}
-    - name: Show GUN parallel execution stats
-      run: cat job.log
+    - name: Run notebooks
+      run: julia --color=yes -p ${{ env.LITERATE_PROC }} --heap-size-hint=4G run.jl
     - name: Copy back built notebooks
       run: cp --verbose -rf ${{ env.NBCACHE }}/docs/* docs/
     - name: Build website
