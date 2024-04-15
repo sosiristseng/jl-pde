@@ -1,3 +1,6 @@
 {
-  "liveServer.settings.root": "/docs/_build/html"
+  "liveServer.settings.root": "/docs/_build/html",
+  "cSpell.words": [
+    "semilinear"
+  ]
 }
