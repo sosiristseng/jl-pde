@@ -1,6 +1,8 @@
 #===
 # 1D PDE: SIS diffusion model
 
+[Source](https://docs.sciml.ai/MethodOfLines/stable/tutorials/sispde/)
+
 $$
 \begin{align}
 \frac{\partial S}{\partial t} &= d_S S_{xx} - \beta(x)\frac{SI}{S+I} + \gamma(x)I  \\
@@ -17,6 +19,7 @@ The boundary condition: $\frac{\partial S}{\partial x} = \frac{\partial I}{\part
 The conservative relationship: $\int^{1}_{0} (S(x) + I(x) ) dx = 1$
 
 Notations:
+
 - $x$ : location
 - $t$ : time
 - $S(x, t)$ : the density of susceptible populations
@@ -73,7 +76,6 @@ domains = [
     [dS => 0.5, dI => 0.1, brn => 3, ϵ => 0.1] ## Initial conditions
 )
 
-# Method of lines discretization
 # Finite difference method (FDM) converts the PDE system into an ODE problem
 dx = 0.01
 order = 2
@@ -84,19 +86,16 @@ prob = discretize(pdesys, discretization)
 # `KenCarp4` is good at solving semilinear problems (like this one).
 sol = solve(prob, KenCarp4(), saveat=0.2)
 
-# Retrieve the results (Matrices) and visulize them
+# Grid points
 discrete_x = sol[x]
 discrete_t = sol[t]
+
+# Results (Matrices)
 S_solution = sol[S(t, x)]
 I_solution = sol[I(t, x)]
 
+# Visualize
 surface(discrete_x, discrete_t, S_solution, xlabel="Location", ylabel="Time", title="Susceptible")
 
 #---
 surface(discrete_x, discrete_t, I_solution, xlabel="Location", ylabel="Time", title="Infectious")
-
-# ## Solving the steady state problem
-steadystateprob = SteadyStateProblem(prob)
-sssol = solve(steadystateprob, DynamicSS(TRBDF2()))
-I_solution = sssol[I(t, x)]
-S_solution = sssol[S(t, x)]
