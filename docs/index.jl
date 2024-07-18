@@ -1,3 +1,4 @@
+md"""
 # Partial Differential Equations (PDEs)
 
 Solving partial differential equations (PDEs) using https://github.com/SciML/MethodOfLines.jl
@@ -18,4 +19,14 @@ Solving partial differential equations (PDEs) using https://github.com/SciML/Met
 - Universal Differential Equations (UDEs): https://github.com/SciML/DiffEqFlux.jl
 - Physically-informed neural networks (PINNs): https://github.com/SciML/NeuralPDE.jl
 
-`DiffEqFlux` is generally more efficient than `NeuralPDE` because `NeuralPDE` also tries to discover physical rules in the data, as mentioned in [this thread](https://discourse.julialang.org/t/comparisons-between-julia-neuralpde-jl-and-diffeqflux-jl-and-deepxde-python-package/52669).
+`DiffEqFlux` is generally more efficient than `NeuralPDE` because `NeuralPDE` also tries to discover physical rules in the data, which is mentioned in [this thread](https://discourse.julialang.org/t/comparisons-between-julia-neuralpde-jl-and-diffeqflux-jl-and-deepxde-python-package/52669).
+
+## Runtime environment
+"""
+
+using Pkg
+Pkg.status()
+
+#---
+using InteractiveUtils
+InteractiveUtils.versioninfo()
