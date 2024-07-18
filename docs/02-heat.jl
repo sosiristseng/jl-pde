@@ -1,4 +1,4 @@
-#===
+md"""
 # 2D heat equation
 
 From the tutorial
@@ -10,7 +10,7 @@ Using `MethodOfLines.jl` (https://github.com/SciML/MethodOfLines.jl/) to symboli
 $$
 \frac{\partial u}{\partial t} = \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2}
 $$
-===#
+"""
 
 using ModelingToolkit
 using MethodOfLines
@@ -48,7 +48,7 @@ domains = [
 # PDE system
 @named pdesys = PDESystem(eq, bcs, domains, [t, x, y], [u(t, x, y)])
 
-# discretize the PDE system
+# Discretize the PDE system into an ODE system
 N = 20
 discretization = MOLFiniteDifference([x=>N, y=>N], t, approx_order=2, grid_align=MethodOfLines.EdgeAlignedGrid())
 prob = discretize(pdesys, discretization)
@@ -67,4 +67,4 @@ anim = @animate for k in eachindex(discrete_t)
     heatmap(solu[k, 2:end-1, 2:end-1], title="u @ t=$(discrete_t[k])", aspect_ratio=:equal)
 end
 
-mp4(anim,"2Dheat.mp4", fps = 8)
+mp4(anim, fps = 8)

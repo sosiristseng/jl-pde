@@ -1,4 +1,4 @@
-#===
+md"""
 # Symbolic Brusselator PDE
 
 [Source](https://docs.sciml.ai/MethodOfLines/stable/tutorials/brusselator/)
@@ -41,7 +41,7 @@ u(x, y+1, 0) &= u(x, y, t)
 $$
 
 on a time span of $t \in [0, 11.5]$.
-===#
+"""
 
 using ModelingToolkit
 using MethodOfLines
@@ -49,7 +49,7 @@ using OrdinaryDiffEq
 using DomainSets
 using Plots
 
-#---
+# Setup parameters, variables, and differential operators
 @parameters x y t
 @variables u(..) v(..)
 
@@ -104,9 +104,9 @@ end
 prob = discretize(pdesys, discretization)
 
 # Solvers: https://diffeq.sciml.ai/stable/solvers/ode_solve/
-sol = solve(prob, TRBDF2(), saveat=0.1)
+@time sol = solve(prob, KenCarp4(), saveat=0.1)
 
-# Data
+# Extract data
 discrete_x = sol[x]
 discrete_y = sol[y]
 discrete_t = sol[t]

@@ -1,4 +1,4 @@
-#===
+md"""
 # 1D PDE: SIS diffusion model
 
 [Source](https://docs.sciml.ai/MethodOfLines/stable/tutorials/sispde/)
@@ -27,9 +27,8 @@ Notations:
 - $d_S$ / $d_I$ : the diffusion coefficients for susceptible and infected individuals
 - $\beta(x)$ : transmission rates
 - $\gamma(x)$ : recovery rates
-===#
-
-using DifferentialEquations
+"""
+using OrdinaryDiffEq
 using ModelingToolkit
 using MethodOfLines
 using DomainSets
@@ -47,7 +46,7 @@ Dxx = Differential(x)^2
 γ(x) = x + 1
 ratio(x, brn, ϵ) =  brn + ϵ * sinpi(2x)
 
-# 1D PDE and boundary conditions
+# 1D PDE for disease spreading
 eqs = [
     Dt(S(t, x)) ~ dS * Dxx(S(t, x)) - ratio(x, brn, ϵ) * γ(x) * S(t, x) * I(t, x) / (S(t, x) + I(t, x)) + γ(x) * I(t, x),
     Dt(I(t, x)) ~ dI * Dxx(I(t, x)) + ratio(x, brn, ϵ) * γ(x) * S(t, x) * I(t, x) / (S(t, x) + I(t, x)) - γ(x) * I(t, x)
@@ -69,7 +68,7 @@ domains = [
     x ∈ Interval(0.0, 1.0)
 ]
 
-# Define the PDE system
+# Build the PDE system
 @named pdesys = PDESystem(eqs, bcs, domains,
     [t, x], ## Independent variables
     [S(t, x), I(t, x)],  ## Dependent variables
@@ -83,7 +82,7 @@ discretization = MOLFiniteDifference([x => dx], t, approx_order=order)
 prob = discretize(pdesys, discretization)
 
 # ## Solving time-dependent SIS epidemic model
-# `KenCarp4` is good at solving semilinear problems (like this one).
+# `KenCarp4` is good at solving semilinear problems (like this example).
 sol = solve(prob, KenCarp4(), saveat=0.2)
 
 # Grid points
@@ -94,7 +93,7 @@ discrete_t = sol[t]
 S_solution = sol[S(t, x)]
 I_solution = sol[I(t, x)]
 
-# Visualize
+# Visualize the solution
 surface(discrete_x, discrete_t, S_solution, xlabel="Location", ylabel="Time", title="Susceptible")
 
 #---
