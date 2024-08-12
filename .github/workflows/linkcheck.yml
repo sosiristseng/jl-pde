@@ -9,14 +9,16 @@ on:
       - main
     paths:
       - 'docs/**'
-      - '.lycheeignore'
       - '.github/workflows/linkcheck.yml'
 
-env:
-  DIR: 'docs'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   linkcheck:
+    env:
+      DIR: 'docs'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,11 +27,12 @@ jobs:
         uses: julia-actions/setup-julia@v2
       - name: Convert literate notebooks to ipynb files
         shell: julia --color=yes {0}
+        working-directory: ${{ env.DIR }}
         run: |
           import Pkg
           Pkg.add("Literate")
           using Literate
-          for (root, dirs, files) in walkdir("docs")
+          for (root, dirs, files) in walkdir(pwd())
             for file in files
               if endswith(file, ".jl")
                 nb = joinpath(root, file)
@@ -47,14 +50,14 @@ jobs:
         if: ${{ contains(runner.name, 'GitHub Actions') }}
         id: cache-venv
         with:
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('requirements-jb.txt') }}
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('requirements.txt') }}
           path: .venv
       - name: Install Python dependencies
         run: |
           python -m venv .venv
           source .venv/bin/activate
-          python -m pip install -r requirements-jb.txt
+          python -m pip install -r requirements.txt
           echo "${VIRTUAL_ENV}/bin" >> $GITHUB_PATH
           echo "VIRTUAL_ENV=${VIRTUAL_ENV}" >> $GITHUB_ENV
-      - name: Check links
-        run: jb build ${DIR} --builder linkcheck
+      - name: Build website
+        run: jupyter-book build ${DIR} --builder linkcheck
