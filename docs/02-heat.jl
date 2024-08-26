@@ -15,7 +15,7 @@ $$
 using ModelingToolkit
 using MethodOfLines
 using DomainSets
-using OrdinaryDiffEq
+using DifferentialEquations
 using Plots
 
 # Setup variables and differential operators

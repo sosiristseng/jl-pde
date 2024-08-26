@@ -2,7 +2,7 @@
 
 julia_version = "1.10.4"
 manifest_format = "2.0"
-project_hash = "410c63fc10b776aca2b75a37bdf2633ba2b63d59"
+project_hash = "4a59c45316241b3d3e79763d6a1060dbc3b5efc9"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "99a6f5d0ce1c7c6afdb759daa30226f71c54f6b0"
@@ -1607,9 +1607,9 @@ version = "10.42.0+1"
 
 [[deps.PDEBase]]
 deps = ["DomainSets", "ModelingToolkit", "SciMLBase", "SymbolicUtils", "Symbolics"]
-git-tree-sha1 = "18706bb94c9938703db6236a023b883c180650ae"
+git-tree-sha1 = "76bc720a1591150acf95deb8a58345c3e1e256d9"
 uuid = "a7812802-0625-4b9e-961c-d332478797e5"
-version = "0.1.14"
+version = "0.1.12"
 
 [[deps.PDMats]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]

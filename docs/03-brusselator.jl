@@ -45,7 +45,7 @@ on a time span of $t \in [0, 11.5]$.
 
 using ModelingToolkit
 using MethodOfLines
-using OrdinaryDiffEq
+using DifferentialEquations
 using DomainSets
 using Plots
 

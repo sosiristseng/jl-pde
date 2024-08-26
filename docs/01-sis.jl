@@ -28,7 +28,7 @@ Notations:
 - $\beta(x)$ : transmission rates
 - $\gamma(x)$ : recovery rates
 """
-using OrdinaryDiffEq
+using DifferentialEquations
 using ModelingToolkit
 using MethodOfLines
 using DomainSets
@@ -44,7 +44,7 @@ Dxx = Differential(x)^2
 
 # Helper functions
 γ(x) = x + 1
-ratio(x, brn, ϵ) =  brn + ϵ * sinpi(2x)
+ratio(x, brn, ϵ) = brn + ϵ * sinpi(2x)
 
 # 1D PDE for disease spreading
 eqs = [
@@ -72,9 +72,8 @@ domains = [
 @named pdesys = PDESystem(eqs, bcs, domains,
     [t, x], ## Independent variables
     [S(t, x), I(t, x)],  ## Dependent variables
-    [dS => 0.5, dI => 0.1, brn => 3, ϵ => 0.1] ## Initial conditions
+    [dS => 0.5, dI => 0.1, brn => 3, ϵ => 0.1]
 )
-
 # Finite difference method (FDM) converts the PDE system into an ODE problem
 dx = 0.01
 order = 2
