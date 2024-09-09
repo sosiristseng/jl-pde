@@ -11,15 +11,15 @@ $$
 \frac{\partial u}{\partial t} = \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2}
 $$
 """
-
 using ModelingToolkit
 using MethodOfLines
 using DomainSets
-using DifferentialEquations
+using OrdinaryDiffEq
 using Plots
 
 # Setup variables and differential operators
-@variables t x y
+@independent_variables t
+@variables x y
 @variables u(..)
 
 Dt = Differential(t)

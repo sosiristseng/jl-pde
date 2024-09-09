@@ -42,10 +42,9 @@ $$
 
 on a time span of $t \in [0, 11.5]$.
 """
-
 using ModelingToolkit
 using MethodOfLines
-using DifferentialEquations
+using OrdinaryDiffEq
 using DomainSets
 using Plots
 
@@ -119,7 +118,6 @@ vmax = maximum(maximum, solu)
 
 # ## Visualization
 # Interval == `2:end` since in periodic condition, end == 1
-
 anim = @animate for k in eachindex(discrete_t)
     heatmap(solu[2:end, 2:end, k], title="u @ t=$(discrete_t[k])", clims = (0.0, 4.2))
 end

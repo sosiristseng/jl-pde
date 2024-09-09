@@ -28,7 +28,7 @@ Notations:
 - $\beta(x)$ : transmission rates
 - $\gamma(x)$ : recovery rates
 """
-using DifferentialEquations
+using OrdinaryDiffEq
 using ModelingToolkit
 using MethodOfLines
 using DomainSets
@@ -72,7 +72,8 @@ domains = [
 @named pdesys = PDESystem(eqs, bcs, domains,
     [t, x], ## Independent variables
     [S(t, x), I(t, x)],  ## Dependent variables
-    [dS => 0.5, dI => 0.1, brn => 3, ϵ => 0.1]
+    [dS, dI, brn, ϵ],
+    defaults = Dict(dS => 0.5, dI => 0.1, brn => 3, ϵ => 0.1)
 )
 # Finite difference method (FDM) converts the PDE system into an ODE problem
 dx = 0.01
