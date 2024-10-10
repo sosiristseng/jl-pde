@@ -1,5 +1,5 @@
 md"""
-# Symbolic Brusselator PDE
+# 2D Brusselator PDE
 
 [Source](https://docs.sciml.ai/MethodOfLines/stable/tutorials/brusselator/)
 
@@ -49,7 +49,7 @@ using DomainSets
 using Plots
 
 # Setup parameters, variables, and differential operators
-@parameters x y t
+@independent_variables x y t
 @variables u(..) v(..)
 
 Dt = Differential(t)
@@ -67,8 +67,8 @@ x_max = y_max = 1.0
 t_max = 11.5
 α = 10.0
 
-u0(x, y, t) = 22(y * (1 - y))^(3 / 2)
-v0(x, y, t) = 27(x * (1 - x))^(3 / 2)
+u0(x, y, t) = 22 * (y * (1 - y))^(3 / 2)
+v0(x, y, t) = 27 * (x * (1 - x))^(3 / 2)
 
 # PDEs
 eqs = [
@@ -97,13 +97,15 @@ bcs = [
 @named pdesys = PDESystem(eqs, bcs, domains, [x, y, t], [u(x, y, t), v(x, y, t)])
 
 # Discretization to an ODE system
-discretization = let N = 16, order = 2
+disc = let N = 32, order = 2
     MOLFiniteDifference([x=>N, y=>N], t, approx_order=order)
 end
-prob = discretize(pdesys, discretization)
+
+prob = discretize(pdesys, disc)
 
 # Solvers: https://diffeq.sciml.ai/stable/solvers/ode_solve/
-@time sol = solve(prob, KenCarp4(), saveat=0.1)
+alg = TRBDF2()
+@time sol = solve(prob, alg, saveat=0.1)
 
 # Extract data
 discrete_x = sol[x]
@@ -114,19 +116,19 @@ solu = sol[u(x, y, t)]
 solv = sol[v(x, y, t)]
 
 umax = maximum(maximum, solu)
-vmax = maximum(maximum, solu)
+vmax = maximum(maximum, solv)
 
 # ## Visualization
 # Interval == `2:end` since in periodic condition, end == 1
 anim = @animate for k in eachindex(discrete_t)
-    heatmap(solu[2:end, 2:end, k], title="u @ t=$(discrete_t[k])", clims = (0.0, 4.2))
+    heatmap(solu[2:end, 2:end, k], title="u @ t=$(discrete_t[k])", clims = (0.0, umax))
 end
 
 mp4(anim, fps = 8)
 
 #---
 anim = @animate for k in eachindex(discrete_t)
-    heatmap(solv[2:end, 2:end, k], title="v @ t=$(discrete_t[k])", clims = (0.0, 4.2))
+    heatmap(solv[2:end, 2:end, k], title="v @ t=$(discrete_t[k])", clims = (0.0, vmax))
 end
 
 mp4(anim, fps = 8)
