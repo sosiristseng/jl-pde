@@ -1,5 +1,5 @@
 md"""
-# 2D heat equation
+# 2D time-independent heat equation
 
 From the tutorial
 + https://docs.sciml.ai/MethodOfLines/stable/tutorials/heatss/
@@ -15,56 +15,50 @@ using ModelingToolkit
 using MethodOfLines
 using DomainSets
 using OrdinaryDiffEq
+using NonlinearSolve
 using Plots
 
 # Setup variables and differential operators
-@independent_variables t
 @variables x y
 @variables u(..)
 
-Dt = Differential(t)
 Dxx = Differential(x)^2
 Dyy = Differential(y)^2
 
 # PDE equation
-eq = Dt(u(t, x, y)) ~ Dxx(u(t, x, y)) + Dyy(u(t, x, y))
+eq = Dxx(u(x, y)) + Dyy(u(x, y)) ~ 0
 
 # Boundary conditions
-bcs = [
-    u(0, x, y) ~ 0,
-    u(t, 0, y) ~ x * y,
-    u(t, 1, y) ~ x * y,
-    u(t, x, 0) ~ x * y,
-    u(t, x, 1) ~ x * y,
+bcs = [u(0, y) ~ x * y,
+       u(1, y) ~ x * y,
+       u(x, 0) ~ x * y,
+       u(x, 1) ~ x * y
 ]
 
 # Space and time domains
-domains = [
-    t ∈ Interval(0.0, 1.0),
-    x ∈ Interval(0.0, 1.0),
-    y ∈ Interval(0.0, 1.0)
-]
+domains = [ x ∈ Interval(0.0, 1.0), y ∈ Interval(0.0, 1.0)]
 
 # PDE system
-@named pdesys = PDESystem(eq, bcs, domains, [t, x, y], [u(t, x, y)])
+@named pdesys = PDESystem(eq, bcs, domains, [x, y], [u(x, y)])
 
 # Discretize the PDE system into an ODE system
-N = 20
-discretization = MOLFiniteDifference([x=>N, y=>N], t, approx_order=2, grid_align=MethodOfLines.EdgeAlignedGrid())
-prob = discretize(pdesys, discretization)
+# Pass `nothing` to the time parameter
+prob = let dx=0.1
+    discretization = MOLFiniteDifference([x=>dx, y=>dx], nothing, approx_order=2)
+    prob = discretize(pdesys, discretization)
+end
 
 # Solve the PDE
-sol = solve(prob, KenCarp4(), saveat=0.01)
+sol = NonlinearSolve.solve(prob, NewtonRaphson())
 
 # Extract data
 discrete_x = sol[x]
 discrete_y = sol[y]
-discrete_t = sol[t]
-solu = sol[u(t, x, y)]
+u_sol = sol[u(x,y)]
 
-# Animate the solution
-anim = @animate for k in eachindex(discrete_t)
-    heatmap(solu[k, 2:end-1, 2:end-1], title="u @ t=$(discrete_t[k])", aspect_ratio=:equal)
-end
-
-mp4(anim, fps = 8)
+# Visualize the solution
+heatmap(
+    discrete_x, discrete_y, u_sol,
+    xlabel="x values", ylabel="y values", aspect_ratio=:equal,
+    title="Steady State Heat Equation", xlims=(0, 1), ylims=(0, 1)
+)
