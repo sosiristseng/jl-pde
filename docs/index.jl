@@ -1,14 +1,14 @@
 md"""
 # Partial Differential Equations (PDEs)
 
-Solving partial differential equations (PDEs) using https://github.com/SciML/MethodOfLines.jl
+Solving partial differential equations (PDEs) using https://github.com/SciML/MethodOfLines.jl, a finite difference method (FDM).
 
 ## Other PDE packages
 
 - https://github.com/Ferrite-FEM/Ferrite.jl (Finite Element method)
 - https://github.com/gridap/Gridap.jl and its [tutorials](https://github.com/gridap/Tutorials)
 - https://github.com/trixi-framework/Trixi.jl
-- https://github.com/weymouth/WaterLily.jl for fluid dynamics.
+- https://github.com/WaterLily-jl/WaterLily.jl for fluid dynamics.
 
 ## PDE courses
 

@@ -72,9 +72,10 @@ domains = [
 @named pdesys = PDESystem(eqs, bcs, domains,
     [t, x], ## Independent variables
     [S(t, x), I(t, x)],  ## Dependent variables
-    [dS, dI, brn, ϵ],
+    [dS, dI, brn, ϵ],    ## parameters
     defaults = Dict(dS => 0.5, dI => 0.1, brn => 3, ϵ => 0.1)
 )
+
 # Finite difference method (FDM) converts the PDE system into an ODE problem
 dx = 0.01
 order = 2
@@ -82,7 +83,7 @@ discretization = MOLFiniteDifference([x => dx], t, approx_order=order)
 prob = discretize(pdesys, discretization)
 
 # ## Solving time-dependent SIS epidemic model
-# `KenCarp4` is good at solving semilinear problems (like this example).
+# `KenCarp4` is good at solving semilinear problems (like reaction-diffusion problems).
 sol = solve(prob, KenCarp4(), saveat=0.2)
 
 # Grid points

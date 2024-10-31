@@ -41,7 +41,7 @@ domains = [ x ∈ Interval(0.0, 1.0), y ∈ Interval(0.0, 1.0)]
 # PDE system
 @named pdesys = PDESystem(eq, bcs, domains, [x, y], [u(x, y)])
 
-# Discretize the PDE system into an ODE system
+# Discretize the PDE system into an Nonlinear system
 # Pass `nothing` to the time parameter
 prob = let dx=0.1
     discretization = MOLFiniteDifference([x=>dx, y=>dx], nothing, approx_order=2)
