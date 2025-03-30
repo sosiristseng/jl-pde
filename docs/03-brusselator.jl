@@ -1,4 +1,4 @@
-md"""
+#===
 # 2D Brusselator PDE
 
 [Source](https://docs.sciml.ai/MethodOfLines/stable/tutorials/brusselator/)
@@ -41,7 +41,8 @@ u(x, y+1, 0) &= u(x, y, t)
 $$
 
 on a time span of $t \in [0, 11.5]$.
-"""
+===#
+
 using ModelingToolkit
 using MethodOfLines
 using OrdinaryDiffEq
@@ -97,15 +98,16 @@ bcs = [
 @named pdesys = PDESystem(eqs, bcs, domains, [x, y, t], [u(x, y, t), v(x, y, t)])
 
 # Discretization to an ODE system
-disc = let N = 32, order = 2
-    MOLFiniteDifference([x=>N, y=>N], t, approx_order=order)
+@time disc = let N = 32, order = 2
+    dx = 1 / N
+    MOLFiniteDifference([x=>dx, y=>dx], t; approx_order=order)
 end
 
-prob = discretize(pdesys, disc)
+# convert the `PDESystem` in to an `ODEProblem` or a `NonlinearProblem`
+@time prob = discretize(pdesys, disc)
 
 # Solvers: https://diffeq.sciml.ai/stable/solvers/ode_solve/
-alg = TRBDF2()
-@time sol = solve(prob, alg, saveat=0.1)
+@time sol = solve(prob, TRBDF2(), saveat=0.1)
 
 # Extract data
 discrete_x = sol[x]
