@@ -42,7 +42,6 @@ $$
 
 on a time span of $t \in [0, 11.5]$.
 ===#
-
 using ModelingToolkit
 using MethodOfLines
 using OrdinaryDiffEq
@@ -98,7 +97,7 @@ bcs = [
 @named pdesys = PDESystem(eqs, bcs, domains, [x, y, t], [u(x, y, t), v(x, y, t)])
 
 # Discretization to an ODE system
-@time disc = let N = 32, order = 2
+@time disc = let N = 20, order = 2
     dx = 1 / N
     MOLFiniteDifference([x=>dx, y=>dx], t; approx_order=order)
 end
