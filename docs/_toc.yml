@@ -7,3 +7,4 @@ chapters:
   - file: 01-sis
   - file: 02-heat
   - file: 03-brusselator
+  - file: ode-pde

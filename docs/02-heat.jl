@@ -19,7 +19,7 @@ using NonlinearSolve
 using Plots
 
 # Setup variables and differential operators
-@variables x y
+@independent_variables x y
 @variables u(..)
 
 Dxx = Differential(x)^2
@@ -43,13 +43,13 @@ domains = [ x ∈ Interval(0.0, 1.0), y ∈ Interval(0.0, 1.0)]
 
 # Discretize the PDE system into an Nonlinear system
 # Pass `nothing` to the time parameter
-prob = let dx=0.1
-    discretization = MOLFiniteDifference([x=>dx, y=>dx], nothing, approx_order=2)
+@time prob = let dx=0.1
+    discretization = MOLFiniteDifference([x=>dx, y=>dx], nothing, approx_order=2, grid_align = MethodOfLines.EdgeAlignedGrid())
     prob = discretize(pdesys, discretization)
 end
 
 # Solve the PDE
-sol = NonlinearSolve.solve(prob, NewtonRaphson())
+@time sol = NonlinearSolve.solve(prob, NewtonRaphson())
 
 # Extract data
 discrete_x = sol[x]
