@@ -106,7 +106,7 @@ end
 @time prob = discretize(pdesys, disc)
 
 # Solvers: https://diffeq.sciml.ai/stable/solvers/ode_solve/
-@time sol = solve(prob, TRBDF2(), saveat=0.1)
+@time sol = solve(prob, KenCarp47(), saveat=0.1)
 
 # Extract data
 discrete_x = sol[x]
