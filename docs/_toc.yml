@@ -4,7 +4,7 @@
 format: jb-book
 root: index
 chapters:
+  - file: ode-pde
   - file: 01-sis
   - file: 02-heat
   - file: 03-brusselator
-  - file: ode-pde
