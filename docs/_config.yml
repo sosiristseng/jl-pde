@@ -1,7 +1,7 @@
 # Book settings
 # Learn more at https://jupyterbook.org/customize/config.html
 
-title: Partial DE
+title: Partial Differential Equations
 author: Wen-Wei Tseng
 copyright: "2023" # Copyright year to be placed in the footer
 logo: ""  # A path to the book logo
@@ -48,8 +48,8 @@ latex:
   use_jupyterbook_latex: true # use sphinx-jupyterbook-latex for pdf builds as default
 
 # Add a bibtex file so that we can create citations
-# bibtex_bibfiles:
-#   - references.bib
+bibtex_bibfiles:
+  - cite.bib
 
 #######################################################################################
 # Launch button settings
