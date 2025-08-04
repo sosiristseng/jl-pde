@@ -4,7 +4,13 @@
 format: jb-book
 root: index
 chapters:
-  - file: ode-pde
-  - file: 01-sis
-  - file: 02-heat
-  - file: 03-brusselator
+- file: pde-00-manual
+  sections:
+  - file: pde-01-sis
+  - file: pde-02-heat
+  - file: pde-03-brusselator
+- file: ude-01-firstexample
+  sections:
+  - file: ude-02-multishooting
+  - file: ude-03-neuralode
+  - file: ude-04-poisson
