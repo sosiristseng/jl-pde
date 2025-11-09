@@ -17,10 +17,10 @@ project:
     - file: docs/index.md
     - title: PDE
       children:
-        - patterns: docs/pde-*.ipynb
+        - pattern: docs/pde-*.ipynb
     - title: UDE
       children:
-        - patterns: docs/ude-*.ipynb
+        - pattern: docs/ude-*.ipynb
     - file: docs/runtime.ipynb
 
 site:
