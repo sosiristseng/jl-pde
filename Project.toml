@@ -22,6 +22,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SimpleUnPack = "ce78b400-467f-4804-87d8-8f486da07d0a"
 
 [compat]
+Plots = "1.41.1"
 OptimizationPolyalgorithms = "0.3.4"
 OptimizationOptimisers = "0.3.15"
 DiffEqFlux = "4.5.0"
