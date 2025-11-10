@@ -22,6 +22,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SimpleUnPack = "ce78b400-467f-4804-87d8-8f486da07d0a"
 
 [compat]
+DiffEqFlux = "4.5.0"
 DomainSets = "0.7.16"
 LineSearches = "7.4.0"
 OptimizationOptimJL = "0.4.8"
