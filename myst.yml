@@ -15,12 +15,7 @@ project:
   # https://mystmd.org/guide/table-of-contents
   toc:
     - file: docs/index.md
-    - title: PDE
-      children:
-        - pattern: docs/pde-*.ipynb
-    - title: UDE
-      children:
-        - pattern: docs/ude-*.ipynb
+    - pattern: docs/pde-*.ipynb
     - file: docs/runtime.ipynb
 
 site:
