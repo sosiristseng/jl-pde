@@ -16,9 +16,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  PY_VER: '3.13'
-
 jobs:
   linkcheck:
     runs-on: ubuntu-slim
@@ -26,12 +23,12 @@ jobs:
       issues: write # required for peter-evans/create-issue-from-file
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v5
       - name: Setup Python
         uses: actions/setup-python@v6
         id: setup-python
         with:
-          python-version: ${{ env.PY_VER }}
+          python-version: '3.x'
       - name: Install nbconvert
         run: pip install nbconvert
       - name: Convert ipynb files to markdown
