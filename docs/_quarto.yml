@@ -8,8 +8,8 @@ website:
   title: Quarto Julia Template
   page-navigation: true
   back-to-top-navigation: true
-  repo-url: https://github.com/sosiristseng/template-quarto-literate
-  site-url: https://sosiristseng.github.io/template-quarto-literate
+  repo-url: https://github.com/sosiristseng/jl-pde
+  site-url: https://sosiristseng.github.io/jl-pde/
   sidebar:
     style: docked
     search: true
@@ -19,7 +19,7 @@ website:
       - runtime.ipynb
     tools:
       - icon: github
-        href: https://github.com/sosiristseng/template-quarto-literate
+        href: https://github.com/sosiristseng/jl-pde
 
 # bibliography: references.bib
 
