@@ -23,12 +23,12 @@ jobs:
       issues: write # required for peter-evans/create-issue-from-file
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup Python
         uses: actions/setup-python@v6
         id: setup-python
         with:
-          python-version: '3.x'
+          python-version: '3.13'
       - name: Install nbconvert
         run: pip install nbconvert
       - name: Convert ipynb files to markdown
@@ -48,7 +48,7 @@ jobs:
         with:
           fail: false
           failIfEmpty: false
-          args: '--accept 200,204,429 --verbose --no-progress --cache --max-cache-age 1d "docs/**/*.md" "docs/**/*.jl"'
+          args: '--accept 200,204,429 --verbose --no-progress --cache --max-cache-age 1d "docs/**/*.md" "docs/**/*.qmd"'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Issue From File
