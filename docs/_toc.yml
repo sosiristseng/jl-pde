@@ -1,0 +1,11 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
+format: jb-book
+root: index
+chapters:
+- file: pde-00-manual
+- file: pde-01-sis
+- file: pde-02-heat
+- file: pde-03-brusselator
+- file: runtime

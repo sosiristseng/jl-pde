@@ -1,6 +1,5 @@
-using Literate
 using JSON
-using Pkg
+using Literate
 
 ENV["GKSwstype"] = "100"
 
