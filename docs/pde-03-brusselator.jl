@@ -133,3 +133,11 @@ anim = @animate for k in eachindex(discrete_t)
 end
 
 mp4(anim, fps = 8)
+
+# ## Runtime environment
+using Pkg
+Pkg.status()
+
+#---
+using InteractiveUtils
+InteractiveUtils.versioninfo()

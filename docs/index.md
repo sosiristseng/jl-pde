@@ -12,3 +12,10 @@ Solving partial differential equations (PDEs) using https://github.com/SciML/Met
 ## PDE courses
 
 - [Solving partial differential equations in parallel on GPUs](https://github.com/eth-vaw-glaciology/course-101-0250-00)
+
+## UDEs
+
+Universal Differential Equations (UDEs) are hybrids of differential equations and neural networks.
+
+- https://github.com/SciML/DiffEqFlux.jl : fusing differential equations (`DifferentialEquations.jl`) and neural networks (`Lux.jl`).
+- https://github.com/SciML/NeuralPDE.jl : physics-Informed Neural Networks (PINN) Solvers, learning and building the equations from the ground up. `NeuralPDE.jl` is slower than `DiffEqFlux.jl`.

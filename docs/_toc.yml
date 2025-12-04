@@ -1,11 +1,18 @@
 # Table of contents
-# Learn more at https://jupyterbook.org/customize/toc.html
+# Learn more at https://jupyterbook.org/v1/customize/toc.html
 
 format: jb-book
 root: index
-chapters:
-- file: pde-00-manual
-- file: pde-01-sis
-- file: pde-02-heat
-- file: pde-03-brusselator
-- file: runtime
+parts:
+- caption: Partial DEs
+  chapters:
+  - file: pde-00-manual
+  - file: pde-01-sis
+  - file: pde-02-heat
+  - file: pde-03-brusselator
+- caption: Universal DEs
+  chapters:
+  - file: ude-01-firstexample
+  - file: ude-02-multishooting
+  - file: ude-03-neuralode
+  - file: ude-04-poisson

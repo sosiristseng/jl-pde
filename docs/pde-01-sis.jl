@@ -99,3 +99,11 @@ surface(discrete_x, discrete_t, S_solution, xlabel="Location", ylabel="Time", ti
 
 #---
 surface(discrete_x, discrete_t, I_solution, xlabel="Location", ylabel="Time", title="Infectious")
+
+# ## Runtime environment
+using Pkg
+Pkg.status()
+
+#---
+using InteractiveUtils
+InteractiveUtils.versioninfo()

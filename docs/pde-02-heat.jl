@@ -38,7 +38,7 @@ bcs = [u(0, y) ~ x * y,
 # Space and time domains
 domains = [ x ∈ Interval(0.0, 1.0), y ∈ Interval(0.0, 1.0)]
 
-# PDE system
+# ## PDE system
 @named pdesys = PDESystem(eq, bcs, domains, [x, y], [u(x, y)])
 
 # Discretize the PDE system into an Nonlinear system
@@ -56,9 +56,17 @@ discrete_x = sol[x]
 discrete_y = sol[y]
 u_sol = sol[u(x,y)]
 
-# Visualize the solution
+# ## Visualize the solution
 heatmap(
     discrete_x, discrete_y, u_sol,
     xlabel="x values", ylabel="y values", aspect_ratio=:equal,
     title="Steady State Heat Equation", xlims=(0, 1), ylims=(0, 1)
 )
+
+# ## Runtime environment
+using Pkg
+Pkg.status()
+
+#---
+using InteractiveUtils
+InteractiveUtils.versioninfo()
