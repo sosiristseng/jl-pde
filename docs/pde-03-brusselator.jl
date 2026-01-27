@@ -97,16 +97,16 @@ bcs = [
 @named pdesys = PDESystem(eqs, bcs, domains, [x, y, t], [u(x, y, t), v(x, y, t)])
 
 # Discretization to an ODE system
-@time disc = let N = 20, order = 2
+@time "Discretization" disc = let N = 20, order = 2
     dx = 1 / N
     MOLFiniteDifference([x=>dx, y=>dx], t; approx_order=order)
 end
 
 # convert the `PDESystem` in to an `ODEProblem` or a `NonlinearProblem`
-@time prob = discretize(pdesys, disc)
+@time "Build problem" prob = discretize(pdesys, disc)
 
 # Solvers: https://diffeq.sciml.ai/stable/solvers/ode_solve/
-@time sol = solve(prob, KenCarp47(), saveat=0.1)
+@time "Solve problem" sol = solve(prob, KenCarp47(), saveat=0.1)
 
 # Extract data
 discrete_x = sol[x]
