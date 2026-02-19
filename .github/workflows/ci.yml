@@ -56,14 +56,12 @@ jobs:
       if: ${{ steps.cache-julia.outputs.cache-hit != 'true' }}
       with:
         version: ${{ steps.julia-version.outputs.resolved }}
-        arch: ${{ runner.arch }}
     - name: Install Julia packages
       if: ${{ steps.cache-julia.outputs.cache-hit != 'true' }}
-      shell: julia --color=yes {0}
+      shell: julia --color=yes --project=@. {0}
       run: |
         using Pkg, Dates
-        Pkg.add(["JSON", "Literate"])
-        Pkg.activate(".")
+        Pkg.Registry.update()
         Pkg.instantiate()
         Pkg.resolve()
         Pkg.precompile()
@@ -98,8 +96,6 @@ jobs:
         if: ${{ steps.nb-cache.outputs.cache-hit != 'true' }}
         with:
           version: ${{ needs.setup.outputs.ver }}
-          arch: ${{ runner.arch }}
-          show-versioninfo: 'true'
       - name: Restore Julia packages
         uses: actions/cache/restore@v5
         if: ${{ steps.nb-cache.outputs.cache-hit != 'true' }}
