@@ -19,34 +19,28 @@ using NonlinearSolve
 using Plots
 
 # Setup variables and differential operators
-@independent_variables x y
-@variables u(..)
-
-Dxx = Differential(x)^2
-Dyy = Differential(y)^2
-
-# PDE equation
-eq = Dxx(u(x, y)) + Dyy(u(x, y)) ~ 0
-
-# Boundary conditions
-bcs = [u(0, y) ~ x * y,
-       u(1, y) ~ x * y,
-       u(x, 0) ~ x * y,
-       u(x, 1) ~ x * y
-]
-
-# Space and time domains
-domains = [ x ∈ Interval(0.0, 1.0), y ∈ Interval(0.0, 1.0)]
-
-# ## PDE system
-@named pdesys = PDESystem(eq, bcs, domains, [x, y], [u(x, y)])
-
-# Discretize the PDE system into an Nonlinear system
-# Pass `nothing` to the time parameter
-@time prob = let dx=0.1
+function heat_equation(;dx=0.1)
+    @independent_variables x y
+    @variables u(..)
+    Dxx = Differential(x)^2
+    Dyy = Differential(y)^2
+    eq = Dxx(u(x, y)) + Dyy(u(x, y)) ~ 0
+    bcs = [
+        u(0, y) ~ x * y,
+        u(1, y) ~ x * y,
+        u(x, 0) ~ x * y,
+        u(x, 1) ~ x * y
+    ]
+    domains = [ x ∈ Interval(0.0, 1.0), y ∈ Interval(0.0, 1.0)]
+    @named pdesys = PDESystem(eq, bcs, domains, [x, y], [u(x, y)])
+    ## Discretize the PDE system into an Nonlinear system
+    ## Pass `nothing` to the time parameter
     discretization = MOLFiniteDifference([x=>dx, y=>dx], nothing, approx_order=2, grid_align = MethodOfLines.EdgeAlignedGrid())
     prob = discretize(pdesys, discretization)
+    return (; prob, x, y, u)
 end
+
+@time prob, x, y, u = heat_equation()
 
 # Solve the PDE
 @time sol = NonlinearSolve.solve(prob, NewtonRaphson())
@@ -62,11 +56,3 @@ heatmap(
     xlabel="x values", ylabel="y values", aspect_ratio=:equal,
     title="Steady State Heat Equation", xlims=(0, 1), ylims=(0, 1)
 )
-
-# ## Runtime environment
-using Pkg
-Pkg.status()
-
-#---
-using InteractiveUtils
-InteractiveUtils.versioninfo()

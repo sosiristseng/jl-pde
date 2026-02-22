@@ -1,4 +1,4 @@
-#===
+md"""
 # 2D Brusselator PDE
 
 [Source](https://docs.sciml.ai/MethodOfLines/stable/tutorials/brusselator/)
@@ -41,7 +41,7 @@ u(x, y+1, 0) &= u(x, y, t)
 $$
 
 on a time span of $t \in [0, 11.5]$.
-===#
+"""
 using ModelingToolkit
 using MethodOfLines
 using OrdinaryDiffEq
@@ -49,64 +49,49 @@ using DomainSets
 using Plots
 
 # Setup parameters, variables, and differential operators
-@independent_variables x y t
-@variables u(..) v(..)
+function model_bru(; x_min=0.0, x_max=1.0, y_min=0.0, y_max=1.0, t_min=0.0, t_max=11.5, α=10.0, N::Int = 20, order::Int = 2)
+    @independent_variables x y t
+    @variables u(..) v(..)
+    Dt = Differential(t)
+    Dx = Differential(x)
+    Dy = Differential(y)
+    Dxx = Differential(x)^2
+    Dyy = Differential(y)^2
+    ∇²(u) = Dxx(u) + Dyy(u)
 
-Dt = Differential(t)
-Dx = Differential(x)
-Dy = Differential(y)
-Dxx = Differential(x)^2
-Dyy = Differential(y)^2
-∇²(u) = Dxx(u) + Dyy(u)
+    ## Dynamics on each grid point
+    brusselator_f(x, y, t) = (((x - 0.3)^2 + (y - 0.6)^2) <= 0.1^2) * (t >= 1.1) * 5
+    u0(x, y, t) = 22 * (y * (1 - y))^(3 / 2)
+    v0(x, y, t) = 27 * (x * (1 - x))^(3 / 2)
 
-# Dynamics on each grid point
-brusselator_f(x, y, t) = (((x - 0.3)^2 + (y - 0.6)^2) <= 0.1^2) * (t >= 1.1) * 5
-
-x_min = y_min = t_min = 0.0
-x_max = y_max = 1.0
-t_max = 11.5
-α = 10.0
-
-u0(x, y, t) = 22 * (y * (1 - y))^(3 / 2)
-v0(x, y, t) = 27 * (x * (1 - x))^(3 / 2)
-
-# PDEs
-eqs = [
-    Dt(u(x, y, t)) ~ 1.0 + v(x, y, t) * u(x, y, t)^2 - 4.4 * u(x, y, t) + α * ∇²(u(x, y, t)) + brusselator_f(x, y, t),
-    Dt(v(x, y, t)) ~ 3.4 * u(x, y, t) - v(x, y, t) * u(x, y, t)^2 + α * ∇²(v(x, y, t))
-]
-
-# Space and time domains
-domains = [
-    x ∈ Interval(x_min, x_max),
-    y ∈ Interval(y_min, y_max),
-    t ∈ Interval(t_min, t_max)
-]
-
-# Periodic boundary conditions
-bcs = [
-    u(x, y, 0) ~ u0(x, y, 0),
-    u(0, y, t) ~ u(1, y, t),
-    u(x, 0, t) ~ u(x, 1, t),
-    v(x, y, 0) ~ v0(x, y, 0),
-    v(0, y, t) ~ v(1, y, t),
-    v(x, 0, t) ~ v(x, 1, t)
-]
-
-# PDE system
-@named pdesys = PDESystem(eqs, bcs, domains, [x, y, t], [u(x, y, t), v(x, y, t)])
-
-# Discretization to an ODE system
-@time "Discretization" disc = let N = 20, order = 2
-    dx = 1 / N
-    MOLFiniteDifference([x=>dx, y=>dx], t; approx_order=order)
+    eqs = [
+        Dt(u(x, y, t)) ~ 1.0 + v(x, y, t) * u(x, y, t)^2 - 4.4 * u(x, y, t) + α * ∇²(u(x, y, t)) + brusselator_f(x, y, t),
+        Dt(v(x, y, t)) ~ 3.4 * u(x, y, t) - v(x, y, t) * u(x, y, t)^2 + α * ∇²(v(x, y, t))
+    ]
+    domains = [
+        x ∈ Interval(x_min, x_max),
+        y ∈ Interval(y_min, y_max),
+        t ∈ Interval(t_min, t_max)
+    ]
+    ## Periodic boundary conditions
+    bcs = [
+        u(x, y, 0) ~ u0(x, y, 0),
+        u(0, y, t) ~ u(1, y, t),
+        u(x, 0, t) ~ u(x, 1, t),
+        v(x, y, 0) ~ v0(x, y, 0),
+        v(0, y, t) ~ v(1, y, t),
+        v(x, 0, t) ~ v(x, 1, t)
+    ]
+    @named pdesys = PDESystem(eqs, bcs, domains, [x, y, t], [u(x, y, t), v(x, y, t)])
+    disc = MOLFiniteDifference([x=>N, y=>N], t; approx_order=order)
+    prob = discretize(pdesys, disc)
+    return (; prob, x, y, t, u, v)
 end
 
-# convert the `PDESystem` in to an `ODEProblem` or a `NonlinearProblem`
-@time "Build problem" prob = discretize(pdesys, disc)
+@time prob, x, y, t, u, v = model_bru()
 
 # Solvers: https://diffeq.sciml.ai/stable/solvers/ode_solve/
-@time "Solve problem" sol = solve(prob, KenCarp47(), saveat=0.1)
+@time sol = solve(prob, QNDF(), saveat=0.1);
 
 # Extract data
 discrete_x = sol[x]
@@ -133,11 +118,3 @@ anim = @animate for k in eachindex(discrete_t)
 end
 
 mp4(anim, fps = 8)
-
-# ## Runtime environment
-using Pkg
-Pkg.status()
-
-#---
-using InteractiveUtils
-InteractiveUtils.versioninfo()
