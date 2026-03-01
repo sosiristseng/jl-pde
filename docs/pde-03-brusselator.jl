@@ -89,9 +89,7 @@ function model_bru(; x_min=0.0, x_max=1.0, y_min=0.0, y_max=1.0, t_min=0.0, t_ma
 end
 
 @time prob, x, y, t, u, v = model_bru()
-
-# Solvers: https://diffeq.sciml.ai/stable/solvers/ode_solve/
-@time sol = solve(prob, QNDF(), saveat=0.1);
+@time sol = solve(prob, FBDF(), saveat=0.1);
 
 # Extract data
 discrete_x = sol[x]
