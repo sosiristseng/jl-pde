@@ -17,6 +17,7 @@ project:
   toc:
     - file: index.md
     - pattern: "pde-*.ipynb"
+    - pattern: "ude-*.ipynb"
 
 site:
   template: book-theme
