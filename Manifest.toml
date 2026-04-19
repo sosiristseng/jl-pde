@@ -1762,9 +1762,9 @@ version = "1.5.3"
 
 [[deps.LuxLib]]
 deps = ["ArrayInterface", "CPUSummary", "ChainRulesCore", "DispatchDoctor", "EnzymeCore", "FastClosures", "Functors", "KernelAbstractions", "LinearAlgebra", "LuxCore", "MLDataDevices", "Markdown", "NNlib", "Preferences", "Random", "Reexport", "SciMLPublic", "Static", "StaticArraysCore", "Statistics", "UUIDs"]
-git-tree-sha1 = "b905261773fb2cc3788d1615af3059ee06d5ee49"
+git-tree-sha1 = "cb3017e77beb2efa78b9d04628744255cd08f0d1"
 uuid = "82251201-b29d-42c6-8e01-566dec8acb11"
-version = "1.15.7"
+version = "1.15.8"
 
     [deps.LuxLib.extensions]
     AppleAccelerateExt = "AppleAccelerate"
