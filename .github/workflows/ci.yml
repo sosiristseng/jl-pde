@@ -13,11 +13,10 @@ concurrency:
 
 env:
   CACHE_NUM: '1'
-  LITERATE_PROC: '2'
   JULIA_CI: 'true'
-  JULIA_CPU_TARGET: 'generic;icelake-server,clone_all;znver3,clone_all'
-  JULIA_NUM_THREADS: '2'
-  OPENBLAS_NUM_THREADS: '1'
+  # JULIA_CPU_TARGET: 'generic;icelake-server,clone_all;znver3,clone_all'
+  JULIA_NUM_THREADS: 'auto'
+  # OPENBLAS_NUM_THREADS: '1'
   NBCACHE: '.cache'
   PY_VER: '3.14'
   JULIA_CONDAPKG_OFFLINE: true
@@ -25,7 +24,7 @@ env:
 
 jobs:
   setup:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
       env: ${{ steps.hash.outputs.env }}
@@ -79,7 +78,7 @@ jobs:
       fail-fast: false
       matrix:
         notebook: ${{ fromJSON(needs.setup.outputs.matrix) }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     env:
       NB: docs/${{ matrix.notebook }}
     steps:
@@ -128,7 +127,7 @@ jobs:
 
   render:
     needs: execute
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v6
