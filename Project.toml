@@ -29,3 +29,6 @@ Startup = "e80f4348-e2eb-4374-9c6b-5eacfe337353"
 
 [compat]
 ForwardDiff = "1"
+
+[workspace]
+projects = ["Startup"]
