@@ -29,7 +29,7 @@ site:
   options:
     folders: true
     logo_text: "Julia PDE and UDE"
-  favicon: favicon.ico
+    favicon: favicon.ico
   # logo: site_logo.png
   # style: ./my-style.css
   nav: []
