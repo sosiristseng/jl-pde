@@ -14,16 +14,15 @@ concurrency:
 env:
   CACHE_NUM: '1'
   JULIA_CI: 'true'
-  # JULIA_CPU_TARGET: 'generic;icelake-server,clone_all;znver3,clone_all'
+  JULIA_CPU_TARGET: 'generic;icelake-server,clone_all;znver3,clone_all'
   JULIA_NUM_THREADS: 'auto'
   OPENBLAS_NUM_THREADS: '1'
   NBCACHE: '.cache'
-  JULIA_CONDAPKG_BACKEND: 'Null'
-  JULIA_CONDAPKG_OFFLINE: true
+  JULIA_CONDAPKG_ENV: '@mpl'
 
 jobs:
   setup:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
       env: ${{ steps.hash.outputs.env }}
@@ -37,10 +36,6 @@ jobs:
       id: setup-python
       with:
         python-version: 3.x
-    - name: Install the latest version of uv
-      uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
-    - name: Install python packages
-      run: uv pip install --system -r requirements.txt
     - name: Read Julia version
       id: julia-version
       run: python -c 'import tomllib; from pathlib import Path; print("resolved=", tomllib.loads(Path("Manifest.toml").read_text())["julia_version"], sep="")' >> "$GITHUB_OUTPUT"
@@ -76,21 +71,12 @@ jobs:
       fail-fast: false
       matrix:
         notebook: ${{ fromJSON(needs.setup.outputs.matrix) }}
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
     env:
       NB: docs/${{ matrix.notebook }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      - name: Setup Python
-        uses: actions/setup-python@v6
-        id: setup-python
-        with:
-          python-version: 3.x
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
-      - name: Install python packages
-        run: uv pip install --system -r requirements.txt
       - name: Cache notebook
         uses: actions/cache@v6
         id: nb-cache
