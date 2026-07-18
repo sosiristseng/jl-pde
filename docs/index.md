@@ -1,6 +1,4 @@
-# PDE and UDEs
-
-## Partial Differential Equations (PDEs)
+# Partial Differential Equations (PDEs)
 
 Solving partial differential equations (PDEs) using https://github.com/SciML/MethodOfLines.jl, a finite difference method (FDM).
 
@@ -14,7 +12,3 @@ Other PDE packages
 PDE courses
 
 - [Solving partial differential equations in parallel on GPUs](https://github.com/eth-vaw-glaciology/course-101-0250-00)
-
-## Universal Differential Equations (UDEs)
-
-Universal Differential Equations (UDEs) are hybrids of differential equations and neural networks.
