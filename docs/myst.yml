@@ -16,7 +16,13 @@ project:
   # https://mystmd.org/guide/table-of-contents
   toc:
     - file: index.md
-    - pattern: "*.ipynb"
+    - title: PDE
+      children:
+      - pattern: "pde-*.ipynb"
+    - title: UDE
+      children:
+      - pattern: "ude-*.ipynb"
+    - "runtime.ipynb"
 
 site:
   template: book-theme
