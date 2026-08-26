@@ -1,5 +1,4 @@
 # # Parameter estimation
-#
 using NeuralPDE
 using OrdinaryDiffEq
 using Lux
@@ -38,7 +37,7 @@ ps, st = Lux.setup(rng, chain) |> Lux.f64
 additional_loss(phi, θ) = sum(abs2, phi(t_, θ) .- u_) / size(u_, 2)
 
 # NNODE solver
-opt = LBFGS(linesearch = BackTracking())
+opt = Optim.LBFGS(linesearch = BackTracking())
 alg = NNODE(chain, opt, ps; strategy = WeightedIntervalTraining([0.7, 0.2, 0.1], 500), param_estim = true, additional_loss)
 
 # Solve the problem
