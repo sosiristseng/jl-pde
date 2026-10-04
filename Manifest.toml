@@ -2,7 +2,7 @@
 
 julia_version = "1.13.1"
 manifest_format = "2.1"
-project_hash = "1f768c0eec2dfe29447dcbc6d00f5a0f49fc1d16"
+project_hash = "bb4847c4cfc63f2e8e45cb6893b6199d290c402f"
 
 [[deps.ADTypes]]
 deps = ["PrecompileTools"]
@@ -1099,6 +1099,13 @@ git-tree-sha1 = "b2d91fe939cae05960e760110b328288867b5758"
 registries = "General"
 uuid = "92d709cd-6900-40b7-9082-c6be49f344b6"
 version = "0.2.6"
+
+[[deps.IterativeSolvers]]
+deps = ["LinearAlgebra", "Printf", "Random", "RecipesBase", "SparseArrays"]
+git-tree-sha1 = "59545b0a2b27208b0650df0a46b8e3019f85055b"
+registries = "General"
+uuid = "42fd0dbc-a981-5370-80f2-aaf504508153"
+version = "0.9.4"
 
 [[deps.IteratorInterfaceExtensions]]
 git-tree-sha1 = "a3f24677c21f5bbe9d2a714f95dcd58337fb2856"
