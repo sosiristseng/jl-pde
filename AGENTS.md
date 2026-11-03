@@ -16,6 +16,8 @@ Tutorial/documentation site for partial differential equations (MethodOfLines.jl
   `julia --project=@. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'`
 - Rebuild/execute all notebooks like CI (SHA256 cache in `.cache/`, misses rerun automatically):
   `julia --project=@. -p 4 .github/ci.jl` (env vars: `DOCDIR=docs`, `NBCACHE=.cache`; locally `-p 16` is fine)
+- Run a single notebook the way CI matrix jobs do (`NB` switches `ci.jl` to single-notebook mode):
+  `NB=docs/ude-01-firstexample.jl julia --project=@. --color=yes .github/ci.jl`
 - Run a single notebook:
   `julia --project=@. -e 'using Literate; Literate.notebook("docs/ude-01-firstexample.jl", "docs"; mdstrings=true, execute=true)'`
   (the generated `docs/*.ipynb` is harmless: gitignored, and `ci.jl` ignores it)
@@ -23,7 +25,8 @@ Tutorial/documentation site for partial differential equations (MethodOfLines.jl
 
 ## Notebook execution gotchas
 
-- Notebooks are compute-heavy (MethodOfLines discretizations, neural ODE training, PINNs, AdvancedHMC sampling). CI pins `JULIA_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1`, and sets `ENV["GKSwstype"]="100"` for headless Plots.jl — mirror these locally to reproduce CI timing/behavior. CI also sets `JULIA_CONDAPKG_ENV=@mpl`; keep it.
+- CI executes one notebook per matrix job (dynamic matrix over `docs/**/*.jl`, `max-parallel: 10`, `fail-fast: false`); a green `CI` conclusion job is the status check for Kodiak.
+- Notebooks are compute-heavy (MethodOfLines discretizations, neural ODE training, PINNs, AdvancedHMC sampling). CI matrix jobs run with `JULIA_NUM_THREADS=auto` and `OPENBLAS_NUM_THREADS=1`; pin `JULIA_NUM_THREADS=1` locally to reproduce CI timing/behavior. `ENV["GKSwstype"]="100"` is set by `ci.jl` for headless Plots.jl. CI also sets `JULIA_CONDAPKG_ENV=@mpl`; keep it.
 - Plots.jl output is post-processed by `ci.jl` (SVG/HTML stripped when PNG exists); don't hand-edit generated `.ipynb` outputs.
 - Notebooks are seeded (`Random.seed!`), but trained-network outputs may still drift slightly across package versions — cosmetic, not a failure.
 
@@ -31,7 +34,7 @@ Tutorial/documentation site for partial differential equations (MethodOfLines.jl
 
 - Julia is pinned to 1.13 (`[compat]` in `Project.toml`) and CI reads the exact version from the nonstandard `julia_version = "1.13.x"` line in `Manifest.toml` — change it there, not in the workflow.
 - `Manifest.toml` is committed on purpose (static environment). It is updated by weekly "Julia Dependency Update" PRs (`Pkg.update()`); Dependabot covers GitHub Actions only. PRs with the `automerge` label are squash-merged by Kodiak, so manifest churn on `main` is expected — don't hand-edit dependency versions in `Manifest.toml`.
-- CI's notebook cache is keyed on file hashes; editing a `docs/*.jl` is all that's needed to force its re-execution.
+- CI's notebook cache is keyed per notebook (env hash + that notebook file's hash); editing a `docs/*.jl` forces only its re-execution. Built notebooks reach the `render` job as artifacts.
 
 ## Site build
 
