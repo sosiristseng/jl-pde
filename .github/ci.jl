@@ -123,6 +123,21 @@ function main(;
     dopostproc=true)
 
     mkpath(cachedir)
+
+    nb = get(ENV, "NB", "")
+    if !isempty(nb)
+        ## Single notebook mode (CI matrix jobs): execute one Literate notebook.
+        ## Skip decisions are made by per-notebook GitHub Actions cache keys,
+        ## so no .sha bookkeeping is needed here.
+        if endswith(nb, ".jl")
+            @info "Executing single notebook $(nb)"
+            run_literate(nb, cachedir; dopostproc)
+        else
+            @warn "$(nb) is not a Literate notebook!"
+        end
+        return
+    end
+
     clean_cache(cachedir)
     litnbs = list_notebooks(basedir, cachedir)
 
