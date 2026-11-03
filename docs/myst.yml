@@ -1,8 +1,8 @@
 # See docs at: https://mystmd.org/guide/frontmatter
 version: 1
 project:
-  title: Julia PDE
-  description: Partial differential equations in Julia
+  title: Julia PDE & UDE
+  description: Partial and universal differential equations in Julia
   # keywords: []
   authors: ["Wen-Wei Tseng"]
   license: CC-BY-4.0
@@ -15,14 +15,15 @@ project:
   # To autogenerate a Table of Contents, run "jupyter book init --write-toc"
   # https://mystmd.org/guide/table-of-contents
   toc:
-    - file: index.md
+    - file: index.ipynb
     - pattern: "pde-*.ipynb"
+    - pattern: "ude-*.ipynb"
 
 site:
   template: book-theme
   options:
     folders: true
-    logo_text: "Julia PDE"
+    logo_text: "Julia PDE & UDE"
   # favicon: favicon.ico
   # logo: site_logo.png
   # style: ./my-style.css
